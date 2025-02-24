@@ -1,8 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:examen_final_guevara/screens/screens.dart'; 
+import 'package:provider/provider.dart';
+import 'package:examen_final_guevara/providers/login_provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => LoginProvider()),
+
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -12,6 +22,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      
       title: 'Flutter Demo',
       theme: ThemeData(
         // This is the theme of your application.
@@ -34,7 +45,7 @@ class MyApp extends StatelessWidget {
       routes: 
       {
         '/': (context) => const HomeScreen(),
-        '/login': (context) => const LoginScreen(),
+        '/login': (context) => LoginScreen(),
       },
       initialRoute: '/login',
       debugShowCheckedModeBanner: false,

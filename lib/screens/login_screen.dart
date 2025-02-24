@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:examen_final_guevara/providers/login_provider.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget{
    @override
@@ -17,8 +19,12 @@ class _LoginScreenState extends State<LoginScreen>
 
   late var loginProvider;
 
-  initState() {
+  initState() async{
     super.initState();
+    final loginProvider = Provider.of<LoginProvider>(context);
+    List<String> logIn = await loginProvider.logIn();
+    _usuari = logIn[0];
+    _passwd = logIn[1];
     controller = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
@@ -57,20 +63,20 @@ class _LoginScreenState extends State<LoginScreen>
               height: 200,
               child: AnimatedLogo(animation: animation),
             ),
-            if (loginProvider.isLoginOrRegister) loginOrRegisterForm(),
+            if (_usuari != null && _passwd != null)_loginRegisterRequest() else loginOrRegisterForm(),
             SizedBox(height: 100),
-            loginOrRegisterButtons()
+            loginButton()
           ],
         ),
       ),
     );
   }
 
-  Widget loginOrRegisterButtons() {
+  Widget loginButton() {
     return ToggleButtons(
       direction: Axis.horizontal,
       onPressed: (int index) {
-        loginProvider.opcioMenu(index);
+        loginProvider.saveLogIn(_usuari, _passwd);
       },
       borderRadius: const BorderRadius.all(Radius.circular(8)),
       selectedBorderColor: Colors.blue[800],
@@ -90,7 +96,7 @@ class _LoginScreenState extends State<LoginScreen>
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        Text(loginProvider.isLogin ? 'Inicia sessió' : 'Registra\'t'),
+        Text('Inicia sessió' ),
         Container(
           width: 300.0,
           child: Form(
@@ -101,9 +107,7 @@ class _LoginScreenState extends State<LoginScreen>
                   initialValue: '',
                   validator: (text) {
                     if (text!.length == 0) {
-                      return "Correu es obligatori";
-                    } else if (!emailRegExp.hasMatch(text)) {
-                      return "Format correu incorrecte";
+                      return "Usuari es obligatori";
                     }
                     return null;
                   },
@@ -111,13 +115,13 @@ class _LoginScreenState extends State<LoginScreen>
                   maxLength: 50,
                   textAlign: TextAlign.left,
                   decoration: InputDecoration(
-                    hintText: 'Escrigui el seu correu',
-                    labelText: 'Correu',
+                    hintText: 'Escrigui el seu usuari',
+                    labelText: 'Usuari',
                     counterText: '',
                     icon:
-                        Icon(Icons.email, size: 32.0, color: Colors.blue[800]),
+                        Icon(Icons.person, size: 32.0, color: Colors.blue[800]),
                   ),
-                  onSaved: (text) => _correu = text,
+                  onSaved: (text) => _usuari = text,
                 ),
                 TextFormField(
                   initialValue: '',
@@ -126,9 +130,7 @@ class _LoginScreenState extends State<LoginScreen>
                       return "Contrasenya és obligatori";
                     } else if (text.length <= 5) {
                       return "Contrasenya mínim de 5 caràcters";
-                    } else if (!contRegExp.hasMatch(text)) {
-                      return "Contrasenya incorrecte";
-                    }
+                    } 
                     return null;
                   },
                   keyboardType: TextInputType.text,
@@ -142,11 +144,12 @@ class _LoginScreenState extends State<LoginScreen>
                   ),
                   onSaved: (text) => _passwd = text,
                 ),
-                loginProvider.isLogin
+                loginProvider.loggedIn
                     ? CheckboxListTile(
-                        value: _isChecked,
+                        value: _saveUser,
                         onChanged: (value) {
-                          _isChecked = value!;
+                          _saveUser = value!;
+                          loginProvider.loggedIn = value;
                           setState(() {});
                         },
                         title: Text('Recorda\'m'),
@@ -161,9 +164,6 @@ class _LoginScreenState extends State<LoginScreen>
                     color: Colors.blue[800],
                   ),
                 ),
-                loginProvider.isLoading
-                    ? CircularProgressIndicator()
-                    : Container(),
               ],
             ),
           ),
@@ -172,20 +172,8 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  _loginRegisterRequest() async {
-    if (_key.currentState!.validate()) {
-      _key.currentState!.save();
-      // Aquí es realitzaria la petició de login a l'API o similar
-      await loginProvider.loginOrRegister(_correu, _passwd);
-      missatge = 'Gràcies \n $_correu \n $_passwd';
-      if (loginProvider.accesGranted) {
-        Navigator.of(context).pushReplacementNamed('/', arguments: missatge);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(loginProvider.errorMessage),
-        ));
-      }
-    }
+  _loginRegisterRequest(){
+    Navigator.pushNamed(context, '/home');
   }
 }
 
@@ -213,5 +201,4 @@ class AnimatedLogo extends AnimatedWidget {
 
 const List<Widget> events = <Widget>[
   Text('Inicia sessió'),
-  Text('Registra\'t'),
 ];

@@ -1,22 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 
 class LoginProvider extends ChangeNotifier {
   bool loggedIn = false;
 
-  LoginProvider() {
-    _logIn();
-  }
+  LoginProvider();
 
-  Future<List<String>> _logIn() async {
+  Future<List<String>> logIn() async {
     final prefs = await SharedPreferences.getInstance();
     loggedIn = prefs.getBool('loggedIn') ?? false;
     String? user = '';
     String? password = '';
     if (loggedIn) {
-      user = prefs.getString('user');
-      password = prefs.getString('password');
+      user = prefs.getString('user') ?? '';
+      password = prefs.getString('password') ?? '';
     }
 
     List<String?> logIn = [user, password];
@@ -24,9 +21,9 @@ class LoginProvider extends ChangeNotifier {
     return logIn as Future<List<String>>;
   }
 
-  _saveLogIn() async {
+  saveLogIn(usuario, contrasenya) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('favoriteDrinkIds', _favoriteDrinkIds.toList());
-    await prefs.setString('favoriteDrinks', json.encode(_favoriteDrinks));
+    await prefs.setString('user', usuario);
+    await prefs.setString('favoriteDrinks', contrasenya);
   }
 }
